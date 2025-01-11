@@ -8,6 +8,8 @@ Features
 * Handles resumes in both PDF and DOCX formats.
 * Uses regular expressions and font size heuristics to identify relevant information.
 
+Note : sample resume have been included in the repo
+
 Dependencies
 
 This application relies on the following Python libraries:
