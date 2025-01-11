@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- Previous head content remains the same -->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Processor</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <style>
+        .drag-area {
+            border: 2px dashed #4F46E5;
+            transition: all 0.3s ease;
+        }
+        .drag-area.active {
+            border-color: #2563EB;
+            background-color: #EEF2FF;
+        }
+        .file-name {
+            word-break: break-all;
+        }
+        .json-content {
+            white-space: pre-line;
+            max-width: 300px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Previous content remains the same until the table -->
+    <div class="container mx-auto px-4 py-8 max-w-5xl">
+        <!-- Header -->
+        <div class="text-center mb-10">
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">Resume Processor</h1>
+            <p class="text-gray-600">Upload your resume to extract information</p>
+        </div>
+
+        <!-- Upload Section -->
+        <form id="uploadForm" class="bg-white rounded-lg shadow-md p-6 mb-8" action="" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <div class="drag-area cursor-pointer p-8 rounded-lg text-center" id="dragArea">
+            
+                <h3 class="text-lg font-semibold mb-2">Drag & Drop your resume here</h3>
+                <p class="text-gray-500 mb-4">or</p>
+                <label class="bg-indigo-600 text-white px-6 py-2 rounded-md cursor-pointer hover:bg-indigo-700 transition">
+                    Browse File
+                    <input type="file" class="hidden" id="fileInput" name="file" accept=".pdf">
+                </label>
+                <p class="text-sm text-gray-500 mt-4">Only PDF files are supported</p>
+            </div>
+            
+            <!-- Selected File Name -->
+            <div id="selectedFile" class="mt-4 text-center hidden">
+                <p class="text-sm text-gray-600">Selected file:</p>
+                <p class="font-medium text-gray-800 file-name" id="fileName"></p>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="mt-6 text-center">
+                <button type="submit" class="bg-green-600 text-white px-8 py-2 rounded-md hover:bg-green-700 transition">
+                    Submit Resume
+
+            </div>
+        </form>
+
+        <!-- Results Table -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">S.No</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">View Resume</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">JSON Response</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Copy</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">1</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">John Doe</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <button class="text-indigo-600 hover:text-indigo-900">View PDF</button>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-500">
+                                <div class="json-content" id="jsonData">{"first_name": "John",
+"email": "john@example.com",
+"mobile_number": "123-456-7890"}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <button onclick="copyJson(this)" class="bg-gray-100 text-gray-700 px-3 py-1 rounded hover:bg-gray-200 transition">
+                                    Copy
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Previous JavaScript remains the same until copyJson function
+        const dragArea = document.getElementById('dragArea');
+        const fileInput = document.getElementById('fileInput');
+        const uploadForm = document.getElementById('uploadForm');
+        const selectedFile = document.getElementById('selectedFile');
+        const fileName = document.getElementById('fileName');
+
+        // Prevent default drag behaviors
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dragArea.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        // Highlight drop zone when dragging over it
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dragArea.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dragArea.addEventListener(eventName, unhighlight, false);
+        });
+
+        // Handle dropped files
+        dragArea.addEventListener('drop', handleDrop, false);
+        fileInput.addEventListener('change', handleFiles, false);
+
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        function highlight(e) {
+            dragArea.classList.add('active');
+        }
+
+        function unhighlight(e) {
+            dragArea.classList.remove('active');
+        }
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles({ target: { files: files } });
+        }
+
+        function handleFiles(e) {
+            const files = e.target.files;
+            if (files.length && files[0].type === 'application/pdf') {
+                // Show the file name
+                selectedFile.classList.remove('hidden');
+                fileName.textContent = files[0].name;
+            } else {
+                alert('Please upload a PDF file');
+                fileInput.value = '';
+                selectedFile.classList.add('hidden');
+            }
+        }
+
+        function copyJson(button) {
+            const row = button.closest('tr');
+            const jsonDiv = row.querySelector('.json-content');
+            // Remove line breaks when copying
+            const jsonText = jsonDiv.textContent.replace(/\n/g, '');
+
+            navigator.clipboard.writeText(jsonText.trim()).then(() => {
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                button.classList.add('bg-green-100', 'text-green-700');
+                
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.classList.remove('bg-green-100', 'text-green-700');
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+                alert('Failed to copy text to clipboard');
+            });
+        }
+    </script>
+</body>
+</html>
