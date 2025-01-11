@@ -34,7 +34,7 @@
         </div>
 
         <!-- Upload Section -->
-        <form id="uploadForm" class="bg-white rounded-lg shadow-md p-6 mb-8" action="" method="POST" enctype="multipart/form-data">
+        <form id="uploadForm" class="bg-white rounded-lg shadow-md p-6 mb-8" action="http://127.0.0.1:8000/" method="POST" enctype="multipart/form-data">
             {% csrf_token %}
             {{ form.as_p }}
             <div class="drag-area cursor-pointer p-8 rounded-lg text-center" id="dragArea">
@@ -43,9 +43,12 @@
                 <p class="text-gray-500 mb-4">or</p>
                 <label class="bg-indigo-600 text-white px-6 py-2 rounded-md cursor-pointer hover:bg-indigo-700 transition">
                     Browse File
-                    <input type="file" class="hidden" id="fileInput" name="file" accept=".pdf">
+                    <input type="file" class="hidden" id="fileInput" name="file" accept=".pdf , .docx">
                 </label>
                 <p class="text-sm text-gray-500 mt-4">Only PDF files are supported</p>
+                {% if success %}
+                <p>{{data}}</p>
+                {% endif %}
             </div>
             
             <!-- Selected File Name -->
@@ -100,6 +103,7 @@
     </div>
 
     <script>
+
         // Previous JavaScript remains the same until copyJson function
         const dragArea = document.getElementById('dragArea');
         const fileInput = document.getElementById('fileInput');
@@ -148,12 +152,17 @@
 
         function handleFiles(e) {
             const files = e.target.files;
-            if (files.length && files[0].type === 'application/pdf') {
+            const allowedTypes = [
+                'application/pdf',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document' // .docx MIME type
+            ];
+            
+            if (files.length && allowedTypes.includes(files[0].type)) {
                 // Show the file name
                 selectedFile.classList.remove('hidden');
                 fileName.textContent = files[0].name;
             } else {
-                alert('Please upload a PDF file');
+                alert('Please upload a PDF or DOCX file');
                 fileInput.value = '';
                 selectedFile.classList.add('hidden');
             }
