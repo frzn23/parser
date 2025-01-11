@@ -34,7 +34,7 @@
         </div>
 
         <!-- Upload Section -->
-        <form id="uploadForm" class="bg-white rounded-lg shadow-md p-6 mb-8" action="http://127.0.0.1:8000/" method="POST" enctype="multipart/form-data">
+        <form id="uploadForm" class="bg-white rounded-lg shadow-md p-6 mb-8" action="api" method="POST" enctype="multipart/form-data">
             {% csrf_token %}
             {{ form.as_p }}
             <div class="drag-area cursor-pointer p-8 rounded-lg text-center" id="dragArea">
@@ -45,7 +45,7 @@
                     Browse File
                     <input type="file" class="hidden" id="fileInput" name="file" accept=".pdf , .docx">
                 </label>
-                <p class="text-sm text-gray-500 mt-4">Only PDF files are supported</p>
+                <p class="text-sm text-gray-500 mt-4">Only PDF and DOCX files are supported</p>
                 {% if success %}
                 <p>{{data}}</p>
                 {% endif %}
@@ -66,6 +66,11 @@
         </form>
 
         <!-- Results Table -->
+
+        <div class="text-center mb-10">
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">Previously Uploaded Files: </h1>
+        </div>
+
         <div class="bg-white rounded-lg shadow-md overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full">
@@ -79,23 +84,31 @@
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
+
+                        {% for candidate in alldata %}
                         <tr>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">1</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">John Doe</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ forloop.counter }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ candidate.name }}</td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <button class="text-indigo-600 hover:text-indigo-900">View PDF</button>
+                                <a href="{{ candidate.file.url }}" class="text-indigo-600 hover:text-indigo-900">View PDF</a>
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-500">
-                                <div class="json-content" id="jsonData">{"first_name": "John",
-"email": "john@example.com",
-"mobile_number": "123-456-7890"}</div>
+                                <div class="json-content" id="jsonData-{{ candidate.id }}">
+                                    {
+                                        "first_name": "{{ candidate.name }}",
+                                        "email": "{{ candidate.email }}",
+                                        "mobile_number": "{{ candidate.phone }}"
+                                    }
+                                </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <button onclick="copyJson(this)" class="bg-gray-100 text-gray-700 px-3 py-1 rounded hover:bg-gray-200 transition">
+                                <button onclick="copyJson(this)" data-json-id="jsonData-{{ candidate.id }}" class="bg-gray-100 text-gray-700 px-3 py-1 rounded hover:bg-gray-200 transition">
                                     Copy
                                 </button>
                             </td>
                         </tr>
+                        {% endfor %}
+
                     </tbody>
                 </table>
             </div>

@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponse
+from django.core import serializers
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, parser_classes
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -22,27 +23,16 @@ def upload(request):
             resume.phone = parsed_data.get("phone", "Unknown")
             resume.save()
 
-
-            return render(request, "index.html", {"success": True, "data": parsed_data})
+            alldata = Candidate.objects.all()
+            return render(request, "index.html", {"success": True, "data": parsed_data, 'alldata':alldata})
         else:
             print(form.errors)
-        # name = "default name"
-        # email = "default@mail.com"
-        # phone = "+91 99988"
-        # Resume.save(name=name, email=email, phone=phone)
         return render(request, "index.html")
 
-    
-    return render(request, "index.html")
+    alldata = Candidate.objects.all()
+    return render(request, "index.html", {'alldata': alldata})
 
 
-# @api_view(['GET'])
-# def index(request):
-#     items = Resume.objects.all()
-#     serializer = ItemSerializer(items, many=True)
-#     detail = {'name':'farzeen', 'age':'19'}
-#     return Response(serializer.data)
-#     # return render(request, "index.html")
 
 @api_view(['POST'])
 @parser_classes([MultiPartParser, FormParser])
