@@ -32,6 +32,7 @@ def upload(request):
         # Resume.save(name=name, email=email, phone=phone)
         return render(request, "index.html")
 
+    
     return render(request, "index.html")
 
 
